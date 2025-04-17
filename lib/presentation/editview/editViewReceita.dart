@@ -5,6 +5,7 @@ import 'package:receitas/model/receita.dart';
 import 'package:receitas/model/sequencia_preparo.dart';
 import 'package:receitas/presentation/editview/editViewIngrediente.dart';
 import 'package:receitas/presentation/editview/editViewSequenciaPreparo.dart';
+import 'package:receitas/servicos/openai_service.dart';
 
 class editViewReceita extends StatefulWidget {
   final Receita receita;
@@ -27,7 +28,7 @@ class _EditViewReceitaState extends State<editViewReceita> {
   @override
   void initState() {
     super.initState();
-    receitaAtual = widget.receita; // Inicializa com a receita passada
+    receitaAtual = widget.receita;
   }
 
   void salvarReceita() async {
@@ -43,7 +44,7 @@ class _EditViewReceitaState extends State<editViewReceita> {
         );
       });
     } else {
-      await _bdHelper.atualizarReceita(receitaAtual); // Atualiza a receita existente
+      await _bdHelper.atualizarReceita(receitaAtual); 
     }
     Navigator.pop(context);
   }
@@ -76,7 +77,6 @@ class _EditViewReceitaState extends State<editViewReceita> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Campos de edição da receita
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: TextField(
@@ -118,7 +118,6 @@ class _EditViewReceitaState extends State<editViewReceita> {
                     },
                   ),
                 ),
-              // Botões de adicionar ingredientes e sequência de preparo
               if (widget.isEditing)
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -165,7 +164,6 @@ class _EditViewReceitaState extends State<editViewReceita> {
                     ),
                   ],
                 ),
-              // Lista de ingredientes com altura limitada
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Text(
@@ -174,7 +172,7 @@ class _EditViewReceitaState extends State<editViewReceita> {
                 ),
               ),
               SizedBox(
-                height: 200, // Limita a altura da lista de ingredientes
+                height: 200,
                 child: FutureBuilder<List<Ingrediente>>(
                   future: receitaAtual.id != null
                       ? _bdHelper.buscarIngredientes(receitaAtual.id!)
@@ -187,7 +185,37 @@ class _EditViewReceitaState extends State<editViewReceita> {
                       return const Center(
                           child: Text('Erro ao carregar ingredientes.'));
                     }
+
                     final ingredientes = snapshot.data ?? [];
+
+                    if (ingredientes.isEmpty && receitaAtual.nome.isNotEmpty) {
+                      return Center(
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            try {
+                              final openAIService = GoogleGenerativeAIService('AIzaSyBCr4oV2A8PFQlEM-MuFG7VkDzGvKBZIxU');
+                              final novosIngredientes = await openAIService.gerarIngredientes(
+                                receitaAtual.nome,
+                                receitaAtual.id!, 
+                              );
+
+                              // Insere os ingredientes gerados no banco
+                              for (var ingrediente in novosIngredientes) {
+                                await _bdHelper.inserirIngrediente(ingrediente);
+                              }
+
+                              setState(() {}); // Atualiza 
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Erro ao gerar ingredientes: $e')),
+                              );
+                            }
+                          },
+                          child: const Text('Gerar Ingredientes com AI'),
+                        ),
+                      );
+                    }
+
                     return ListView.builder(
                       itemCount: ingredientes.length,
                       itemBuilder: (context, index) {
@@ -202,10 +230,10 @@ class _EditViewReceitaState extends State<editViewReceita> {
                               MaterialPageRoute(
                                 builder: (context) => EditViewIngrediente(
                                   ingrediente: ingrediente,
-                                  isEditing: true,
+                                  isEditing: widget.isEditing,
                                 ),
                               ),
-                            ).then((_) => setState(() {})); // Atualiza a lista após edição
+                            ).then((_) => setState(() {}));
                           },
                         );
                       },
@@ -213,7 +241,6 @@ class _EditViewReceitaState extends State<editViewReceita> {
                   },
                 ),
               ),
-              // Lista de sequência de preparo com altura limitada
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Text(
@@ -222,7 +249,7 @@ class _EditViewReceitaState extends State<editViewReceita> {
                 ),
               ),
               SizedBox(
-                height: 200, // Limita a altura da lista de sequência de preparo
+                height: 200, 
                 child: FutureBuilder<List<SequenciaPreparo>>(
                   future: receitaAtual.id != null
                       ? _bdHelper.buscarSequenciaPreparo(receitaAtual.id!)
@@ -251,10 +278,10 @@ class _EditViewReceitaState extends State<editViewReceita> {
                               MaterialPageRoute(
                                 builder: (context) => EditViewSequenciaPreparo(
                                   sequencia: sequencia,
-                                  isEditing: true,
+                                  isEditing: widget.isEditing,
                                 ),
                               ),
-                            ).then((_) => setState(() {})); // Atualiza a lista após edição
+                            ).then((_) => setState(() {}));
                           },
                         );
                       },

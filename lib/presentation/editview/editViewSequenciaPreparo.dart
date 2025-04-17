@@ -30,7 +30,6 @@ class _EditViewSequenciaPreparoState extends State<EditViewSequenciaPreparo> {
     if (sequenciaAtual.id == null) {
       await _bdHelper.inserirSequenciaPreparo(sequenciaAtual);
     } else {
-      // Atualizar sequência no banco
       await _bdHelper.atualizarSequenciaPreparo(sequenciaAtual);
     }
     Navigator.pop(context);
@@ -47,17 +46,18 @@ class _EditViewSequenciaPreparoState extends State<EditViewSequenciaPreparo> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.isEditing ? 'Editar Sequência' : 'Nova Sequência'),
+        title: Text(widget.isEditing ? 'Editar Sequência' : 'Sequência'),
         actions: [
-          if (widget.isEditing)
+          if (widget.isEditing) ...[
             IconButton(
               icon: const Icon(Icons.delete),
               onPressed: deletarSequencia,
             ),
-          IconButton(
-            icon: const Icon(Icons.save),
-            onPressed: salvarSequencia,
-          ),
+            IconButton(
+              icon: const Icon(Icons.save),
+              onPressed: salvarSequencia,
+            ),
+          ]
         ],
       ),
       body: Padding(
@@ -67,6 +67,7 @@ class _EditViewSequenciaPreparoState extends State<EditViewSequenciaPreparo> {
             TextField(
               controller: TextEditingController(text: sequenciaAtual.instrucao),
               decoration: const InputDecoration(labelText: 'Instrução'),
+              readOnly: !widget.isEditing,
               onChanged: (value) {
                 setState(() {
                   sequenciaAtual = SequenciaPreparo(
@@ -81,6 +82,7 @@ class _EditViewSequenciaPreparoState extends State<EditViewSequenciaPreparo> {
             TextField(
               controller: TextEditingController(text: sequenciaAtual.ordem.toString()),
               decoration: const InputDecoration(labelText: 'Ordem'),
+              readOnly: !widget.isEditing,
               keyboardType: TextInputType.number,
               onChanged: (value) {
                 setState(() {

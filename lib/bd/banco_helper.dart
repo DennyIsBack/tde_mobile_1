@@ -139,7 +139,6 @@ class BancoHelper {
 
   Future<int> deletarReceita(int receitaId) async {
   await iniciarBD();
-  // Primeiro, deleta os ingredientes e sequência de preparo associados
   await _bancoDeDados.delete(
     tabelaIngredientes,
     where: 'receita_id = ?',
@@ -150,7 +149,7 @@ class BancoHelper {
     where: 'receita_id = ?',
     whereArgs: [receitaId],
   );
-  // Depois deleta a receita
+  
   return await _bancoDeDados.delete(
     tabelaReceita,
     where: 'id = ?',

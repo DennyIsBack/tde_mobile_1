@@ -30,7 +30,6 @@ class _EditViewIngredienteState extends State<EditViewIngrediente> {
     if (ingredienteAtual.id == null) {
       await _bdHelper.inserirIngrediente(ingredienteAtual);
     } else {
-      // Atualizar ingrediente no banco
       await _bdHelper.atualizarIngrediente(ingredienteAtual);
     }
     Navigator.pop(context);
@@ -47,17 +46,18 @@ class _EditViewIngredienteState extends State<EditViewIngrediente> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.isEditing ? 'Editar Ingrediente' : 'Novo Ingrediente'),
+        title: Text(widget.isEditing ? 'Editar Ingrediente' : 'Ingrediente'),
         actions: [
-          if (widget.isEditing)
+          if (widget.isEditing) ...[
             IconButton(
               icon: const Icon(Icons.delete),
               onPressed: deletarIngrediente,
             ),
-          IconButton(
-            icon: const Icon(Icons.save),
-            onPressed: salvarIngrediente,
-          ),
+            IconButton(
+              icon: const Icon(Icons.save),
+              onPressed: salvarIngrediente,
+            ),
+          ]
         ],
       ),
       body: Padding(
@@ -67,6 +67,7 @@ class _EditViewIngredienteState extends State<EditViewIngrediente> {
             TextField(
               controller: TextEditingController(text: ingredienteAtual.nomeIngrediente),
               decoration: const InputDecoration(labelText: 'Nome do Ingrediente'),
+              readOnly: !widget.isEditing,
               onChanged: (value) {
                 setState(() {
                   ingredienteAtual = Ingrediente(
@@ -81,6 +82,7 @@ class _EditViewIngredienteState extends State<EditViewIngrediente> {
             TextField(
               controller: TextEditingController(text: ingredienteAtual.quantidade.toString()),
               decoration: const InputDecoration(labelText: 'Quantidade'),
+              readOnly: !widget.isEditing,
               onChanged: (value) {
                 setState(() {
                   ingredienteAtual = Ingrediente(
